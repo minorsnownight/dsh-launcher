@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.svg" width="96" height="96" alt="DSH Launcher logo">
+  <img src="src-tauri/icons/icon.png" width="96" height="96" alt="DSH Launcher logo">
   <h1>DSH Launcher</h1>
   <p>一个用于安装、更新和管理 DeepSeek Harness Web 服务的轻量桌面应用。</p>
   <p>

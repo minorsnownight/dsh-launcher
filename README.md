@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.svg" width="96" height="96" alt="DSH Launcher logo">
+  <img src="src-tauri/icons/icon.png" width="96" height="96" alt="DSH Launcher logo">
   <h1>DSH Launcher</h1>
   <p>A lightweight desktop app for installing, updating, and controlling DeepSeek Harness Web.</p>
   <p>
