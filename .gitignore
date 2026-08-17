@@ -9,4 +9,3 @@ src-tauri/gen/
 .env
 .env.*
 !.env.example
-images/preview.png

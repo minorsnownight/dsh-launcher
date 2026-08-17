@@ -3,7 +3,7 @@
   <h1>DSH Launcher</h1>
   <p>A lightweight desktop app for installing, updating, and controlling DeepSeek Harness Web.</p>
   <p>
-    <a href="README.md">简体中文</a> ·
+    <a href="README.zh-CN.md">简体中文</a> ·
     <a href="https://github.com/minorsnownight/dsh-launcher/releases">Download</a> ·
     <a href="https://github.com/minorsnownight/dsh-launcher/issues">Report an issue</a>
   </p>
