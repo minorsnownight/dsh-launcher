@@ -1,0 +1,50 @@
+{
+  "name": "dsh-launcher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A calm desktop home for DeepSeek Harness",
+  "author": {
+    "name": "minorsnownight",
+    "email": "minorsnownight@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/minorsnownight/dsh-launcher.git"
+  },
+  "homepage": "https://github.com/minorsnownight/dsh-launcher#readme",
+  "bugs": {
+    "url": "https://github.com/minorsnownight/dsh-launcher/issues"
+  },
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:web": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "desktop": "tauri dev",
+    "package": "cross-env LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 tauri build --debug",
+    "dist": "cross-env LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.11.1",
+    "lucide-react": "0.544.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4",
+    "@testing-library/jest-dom": "6.8.0",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "24.5.2",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "@vitejs/plugin-react": "5.0.2",
+    "cross-env": "10.0.0",
+    "jsdom": "26.1.0",
+    "typescript": "5.9.2",
+    "vite": "7.1.5",
+    "vitest": "3.2.4"
+  }
+}
