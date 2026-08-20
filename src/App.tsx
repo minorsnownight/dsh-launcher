@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { LogicalSize } from '@tauri-apps/api/dpi'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { marked, Renderer } from 'marked'
 import {
   ArrowUpRight,
   Check,
@@ -15,12 +16,14 @@ import {
   RefreshCw,
   RotateCcw,
   Settings2,
+  Sparkles,
   Square,
   Sun,
+  X,
 } from 'lucide-react'
 import { translate, type MessageKey } from './i18n'
 import { resolveViewState, type ViewState } from './status'
-import type { LauncherAction, LauncherStatus, Locale, ThemePreference } from './types'
+import type { ChangelogInfo, LauncherAction, LauncherStatus, Locale, ThemePreference } from './types'
 
 const emptyStatus: LauncherStatus = {
   installed: false,
@@ -61,6 +64,42 @@ function stateCopy(view: ViewState): { title: MessageKey; description: MessageKe
   return copy[view]
 }
 
+const changelogRenderer = new Renderer()
+changelogRenderer.html = ({ text }) => {
+  const heading = text.trim().match(/^<h([1-6])(?:\s+id="[-\w.]+")?>([^<]*)<\/h\1>$/i)
+  if (!heading) return ''
+  const level = heading[1]
+  const label = heading[2]
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+  return `<h${level}>${label}</h${level}>`
+}
+marked.setOptions({ breaks: true, gfm: true, renderer: changelogRenderer })
+
+function localizedReleaseNotes(body: string, locale: Locale): string {
+  const sections = body.split(/\r?\n---\r?\n/)
+  if (sections.length < 2) return body
+  if (locale === 'zh-CN') {
+    return sections[0].replace(/^\[中文\].*\r?\n+/, '')
+  }
+  return sections[1]
+}
+
+function formatDate(iso: string | null, locale: Locale): string | null {
+  if (!iso) return null
+  try {
+    const date = new Date(iso)
+    return date.toLocaleDateString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  } catch {
+    return null
+  }
+}
+
 function App() {
   const [locale, setLocale] = useState<Locale>(readLocale)
   const [theme, setTheme] = useState<ThemePreference>(readTheme)
@@ -69,6 +108,11 @@ function App() {
   const [busy, setBusy] = useState<LauncherAction | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [preferencesOpen, setPreferencesOpen] = useState(false)
+  const [changelogOpen, setChangelogOpen] = useState(false)
+  const [changelog, setChangelog] = useState<ChangelogInfo | null>(null)
+  const [changelogLoading, setChangelogLoading] = useState(false)
+  const [changelogError, setChangelogError] = useState<string | null>(null)
+  const [updating, setUpdating] = useState(false)
 
   const t = useCallback((key: MessageKey) => translate(locale, key), [locale])
 
@@ -143,6 +187,52 @@ function App() {
     }
   }
 
+  const openChangelog = useCallback(async () => {
+    if (!shownStatus.latestVersion) return
+    setChangelogOpen(true)
+    setChangelog(null)
+    setChangelogError(null)
+    setChangelogLoading(true)
+    try {
+      const info = await invoke<ChangelogInfo>('fetch_changelog', { version: shownStatus.latestVersion })
+      setChangelog(info)
+    } catch (reason) {
+      setChangelogError(String(reason))
+    } finally {
+      setChangelogLoading(false)
+    }
+  }, [shownStatus.latestVersion])
+
+  const performUpdate = useCallback(async () => {
+    setUpdating(true)
+    setError(null)
+    try {
+      setStatus(await invoke<LauncherStatus>('perform_action', { action: 'update' }))
+      setChangelogOpen(false)
+    } catch (reason) {
+      setError(String(reason))
+      await refresh()
+    } finally {
+      setUpdating(false)
+    }
+  }, [refresh])
+
+  const closeChangelog = useCallback(() => {
+    if (updating) return
+    setChangelogOpen(false)
+  }, [updating])
+
+  const handleChangelogClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement
+    const anchor = target.closest('a')
+    if (!anchor) return
+    e.preventDefault()
+    const href = anchor.getAttribute('href')
+    if (href && href.startsWith('http')) {
+      void invoke('open_external', { url: href })
+    }
+  }, [])
+
   const chooseWorkspace = async () => {
     setError(null)
     try {
@@ -171,6 +261,12 @@ function App() {
     : shownStatus.runtimeSource === 'npx'
       ? t('cachedRuntime')
       : t('managedRuntime')
+
+  const changelogHtml = useMemo(() => {
+    if (!changelog?.body) return ''
+    return marked.parse(localizedReleaseNotes(changelog.body, locale)) as string
+  }, [changelog, locale])
+  const publishedDate = formatDate(changelog?.publishedAt ?? null, locale)
 
   const startWindowDrag = (event: React.MouseEvent<HTMLElement>) => {
     if (event.button !== 0 || !isTauri() || (event.target as HTMLElement).closest('button')) return
@@ -275,7 +371,7 @@ function App() {
             <div className="card-footer">
               <span>{shownStatus.updateAvailable ? t('available') : shownStatus.installed ? t('current') : t('managedRuntimeHint')}</span>
               {shownStatus.updateAvailable && !running && !busy && (
-                <button className="text-button" onClick={() => act('update')}>{t('update')}<ChevronRight size={14} /></button>
+                <button className="text-button" onClick={openChangelog}>{t('update')}<ChevronRight size={14} /></button>
               )}
               {!shownStatus.installed && view === 'external' && !busy && (
                 <button className="text-button" onClick={() => act('install')}>{t('install')}<ChevronRight size={14} /></button>
@@ -297,6 +393,84 @@ function App() {
 
         <p className="preview-note"><CircleAlert size={14} />{t('developerPreview')}</p>
       </main>
+
+      {changelogOpen && (
+        <div className="modal-overlay" onClick={closeChangelog}>
+          <div
+            className="modal-card glass"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="changelog-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-heading">
+                <div className="modal-symbol" aria-hidden="true"><Sparkles size={20} /></div>
+                <div>
+                  <span className="modal-eyebrow">{t('available')}</span>
+                  <h2 id="changelog-title">{t('changelogTitle')}</h2>
+                  {changelog && (
+                    <p className="modal-meta">
+                      <strong>DSH {changelog.version}</strong>
+                      {publishedDate && <span>{t('publishedAt')} {publishedDate}</span>}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button className="icon-button modal-close" aria-label={t('cancel')} onClick={closeChangelog} disabled={updating}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {changelogLoading && (
+                <div className="modal-loading">
+                  <LoaderCircle className="spin" size={28} />
+                  <p>{t('changelogLoading')}</p>
+                </div>
+              )}
+              {changelogError && !changelogLoading && (
+                <div className="modal-error">
+                  <CircleAlert size={28} />
+                  <p>{t('changelogError')}</p>
+                  <span className="modal-error-detail">{changelogError}</span>
+                </div>
+              )}
+              {changelog && !changelogLoading && !changelogError && (
+                <div
+                  className="changelog-content"
+                  dangerouslySetInnerHTML={{ __html: changelogHtml }}
+                  onClick={handleChangelogClick}
+                />
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {changelog?.htmlUrl && !changelogLoading && (
+                <button
+                  className="text-button"
+                  onClick={() => invoke('open_external', { url: changelog.htmlUrl })}
+                >
+                  {t('viewOnGitHub')}<ArrowUpRight size={13} />
+                </button>
+              )}
+              <div className="modal-footer-actions">
+                <button className="secondary-button" onClick={closeChangelog} disabled={updating}>
+                  {t('cancel')}
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={performUpdate}
+                  disabled={changelogLoading || Boolean(changelogError) || updating}
+                >
+                  {updating ? <LoaderCircle className="spin" size={18} /> : <RefreshCw size={17} />}
+                  {updating ? t('updating') : t('updateNow')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

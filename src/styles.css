@@ -167,3 +167,115 @@ main { width: min(860px, calc(100% - 56px)); margin: 8px auto 40px; }
   :root { --line: color-mix(in srgb, var(--text) 32%, transparent); }
   .glass { background: var(--surface-heavy); }
 }
+
+/* ─── Changelog modal ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 28px;
+  background: color-mix(in srgb, #080d1e 54%, transparent);
+  backdrop-filter: blur(12px) saturate(115%);
+  animation: modal-fade 180ms ease both;
+}
+.modal-card {
+  width: min(590px, 100%);
+  max-height: min(610px, 100%);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surface-heavy) 96%, var(--accent) 4%);
+  box-shadow: 0 34px 100px rgba(8, 13, 30, .3), 0 4px 18px rgba(8, 13, 30, .12);
+  animation: modal-rise 240ms cubic-bezier(.2,.8,.2,1) both;
+}
+.modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  padding: 26px 28px 18px;
+}
+.modal-heading { min-width: 0; display: flex; align-items: center; gap: 14px; }
+.modal-symbol {
+  width: 44px; height: 44px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 14px;
+  color: var(--accent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 18%, var(--surface-heavy)), color-mix(in srgb, var(--accent) 8%, var(--surface-heavy)));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 0 1px rgba(255,255,255,.38), 0 8px 22px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.modal-eyebrow {
+  display: block; margin-bottom: 3px;
+  color: var(--accent); font-size: 9px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;
+}
+.modal-header h2 { margin: 0; font-size: 21px; line-height: 1.15; font-weight: 690; letter-spacing: -.03em; }
+.modal-meta { margin: 7px 0 0; display: flex; align-items: center; gap: 8px; color: var(--faint); font-size: 10px; }
+.modal-meta strong {
+  padding: 3px 7px; border-radius: 7px;
+  color: var(--muted); background: color-mix(in srgb, var(--text) 6%, transparent); font-weight: 650;
+}
+.modal-close { flex: 0 0 auto; border-radius: 50%; background: color-mix(in srgb, var(--text) 4%, transparent); }
+.modal-body {
+  flex: 1; min-height: 170px; overflow-y: auto;
+  margin: 0 12px;
+  padding: 0 16px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text) 14%, transparent) transparent;
+}
+.modal-loading, .modal-error {
+  min-height: 220px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 24px; color: var(--muted); text-align: center;
+  border: 1px solid var(--line); border-radius: 18px;
+  background: color-mix(in srgb, var(--text) 2.5%, transparent);
+}
+.modal-loading p, .modal-error p { margin: 0; font-size: 12px; }
+.modal-error { color: var(--danger); }
+.modal-error-detail { max-width: 420px; color: var(--faint); font-size: 10px; line-height: 1.55; word-break: break-word; }
+.changelog-content {
+  padding: 18px 20px;
+  border: 1px solid var(--line); border-radius: 18px;
+  color: var(--muted); background: color-mix(in srgb, var(--text) 2.5%, transparent);
+  font-size: 12px; line-height: 1.68;
+}
+.changelog-content > :first-child { margin-top: 0; }
+.changelog-content > :last-child { margin-bottom: 0; }
+.changelog-content h1, .changelog-content h2, .changelog-content h3 {
+  margin: 20px 0 9px; color: var(--text); font-size: 14px; line-height: 1.35; font-weight: 680; letter-spacing: -.015em;
+}
+.changelog-content h3:first-child { color: var(--accent); }
+.changelog-content ul, .changelog-content ol { padding-left: 19px; margin: 7px 0 14px; }
+.changelog-content li { margin-bottom: 7px; padding-left: 2px; }
+.changelog-content li::marker { color: var(--accent); }
+.changelog-content p { margin: 9px 0; }
+.changelog-content a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.changelog-content a:hover { text-decoration: underline; }
+.changelog-content hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+.changelog-content code {
+  padding: 2px 5px; border-radius: 6px;
+  color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px;
+}
+.changelog-content strong { color: var(--text); font-weight: 670; }
+.changelog-content blockquote { margin: 10px 0; padding-left: 12px; border-left: 3px solid var(--line); color: var(--muted); }
+.modal-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 2px 28px 24px;
+}
+.modal-footer > .text-button { padding-left: 0; font-size: 10px; }
+.modal-footer-actions { display: flex; align-items: center; gap: 8px; }
+.modal-footer .primary-button { min-width: 118px; }
+
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes modal-rise { from { opacity: 0; transform: translateY(10px) scale(.975); } }
+
+@media (max-width: 520px) {
+  .modal-overlay { padding: 12px; align-items: end; }
+  .modal-card { max-height: calc(100% - 12px); border-radius: 24px; }
+  .modal-header { padding: 22px 20px 16px; }
+  .modal-symbol { width: 40px; height: 40px; border-radius: 13px; }
+  .modal-header h2 { font-size: 19px; }
+  .modal-body { margin-inline: 6px; padding-inline: 14px; }
+  .changelog-content { padding: 16px; }
+  .modal-footer { padding: 2px 20px 20px; flex-direction: column-reverse; align-items: stretch; }
+  .modal-footer > .text-button { align-self: flex-start; }
+  .modal-footer-actions { width: 100%; }
+  .modal-footer .primary-button, .modal-footer .secondary-button { flex: 1; }
+}

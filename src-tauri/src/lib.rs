@@ -1,6 +1,6 @@
 mod runtime;
 
-use runtime::{LauncherState, LauncherStatus};
+use runtime::{ChangelogInfo, LauncherState, LauncherStatus};
 use std::sync::Mutex;
 use tauri::{Manager, RunEvent, State};
 
@@ -25,14 +25,19 @@ async fn choose_workspace(
 }
 
 #[tauri::command]
+async fn fetch_changelog(version: String) -> Result<ChangelogInfo, String> {
+    runtime::fetch_release_notes(&version).await
+}
+
+#[tauri::command]
 fn open_service() -> Result<(), String> {
     open_url("http://127.0.0.1:3080")
 }
 
 #[tauri::command]
 fn open_external(url: String) -> Result<(), String> {
-    if url != "https://nodejs.org/" {
-        return Err("URL is not allowed".into());
+    if !url.starts_with("https://") {
+        return Err("Only HTTPS URLs are allowed".into());
     }
     open_url(&url)
 }
@@ -68,6 +73,7 @@ pub fn run() {
             get_status,
             perform_action,
             choose_workspace,
+            fetch_changelog,
             open_service,
             open_external
         ])

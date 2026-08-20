@@ -19,3 +19,10 @@ export interface LauncherStatus {
 }
 
 export type LauncherAction = 'install' | 'update' | 'start' | 'restart' | 'stop'
+
+export interface ChangelogInfo {
+  version: string
+  body: string
+  htmlUrl: string
+  publishedAt: string | null
+}

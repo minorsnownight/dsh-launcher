@@ -1,6 +1,6 @@
 [package]
 name = "dsh-launcher"
-version = "0.1.0"
+version = "0.1.1"
 description = "A calm desktop home for DeepSeek Harness"
 authors = ["minorsnownight <minorsnownight@gmail.com>"]
 edition = "2024"

@@ -1,6 +1,6 @@
 {
   "name": "dsh-launcher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A calm desktop home for DeepSeek Harness",
   "author": {
@@ -30,6 +30,7 @@
   "dependencies": {
     "@tauri-apps/api": "2.11.1",
     "lucide-react": "0.544.0",
+    "marked": "^15.0.12",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
@@ -46,5 +47,6 @@
     "typescript": "5.9.2",
     "vite": "7.1.5",
     "vitest": "3.2.4"
-  }
+  },
+  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1"
 }
